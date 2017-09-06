@@ -1,20 +1,38 @@
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
-class Vertices {
-	public final List<Integer> vertices = new ArrayList<Integer>();
-}
 public class UndirectedGraph {
 	public final int numberOfVertices;
 
-	private final List<Vertices> neighbours = new ArrayList<Vertices>();
+	private final int[] distances;
 
+	private final Set<Integer>[] vertices;
+
+	private final Deque<Integer> queue = new LinkedList<Integer>();
+
+	@SuppressWarnings("unchecked")
 	public UndirectedGraph(Integer numberOfVertices) {
 		this.numberOfVertices = numberOfVertices;
 
-		for (int i = 0; i <= numberOfVertices; i++) {
-			neighbours.add(new Vertices());
+		this.distances = new int[numberOfVertices + 1];
+
+		this.vertices = new HashSet[numberOfVertices + 1];
+
+		initVertices();
+	}
+
+	private void initVertices() {
+		for (int i = 0; i < this.vertices.length; i++) {
+			this.vertices[i] = new HashSet<Integer>();
+		}
+	}
+
+	private void initDistances() {
+		for (int i = 0; i < distances.length; i++) {
+			distances[i] = -1;
 		}
 	}
 
@@ -34,13 +52,19 @@ public class UndirectedGraph {
 
 	public void addEdges(String edgesString) {
 		String[] edges = edgesString.split(";");
-		for (String edge: edges) {
-			String[] nodes = edge.split(",");
-			Integer node1 = Integer.valueOf(nodes[0]);
-			Integer node2 = Integer.valueOf(nodes[1]);
 
-			addEdge(node1, node2);
+		for (String edge: edges) {
+			addEdge(edge);
 		}
+	}
+
+	public void addEdge(String edge) {
+		String[] nodes = edge.split(",");
+
+		Integer node1 = Integer.valueOf(nodes[0]);
+		Integer node2 = Integer.valueOf(nodes[1]);
+
+		addEdge(node1, node2);
 	}
 
 	public void addEdge(Integer node1, Integer node2) {
@@ -48,33 +72,50 @@ public class UndirectedGraph {
 			throw new IllegalArgumentException("Illegal node number");
 		}
 
-		if (node1 > node2) {
-			Integer tmp = node1;
-			node1 = node2;
-			node2 = tmp;
-		}
-
-		assert node1 <= node2;
-
-		Vertices node1Neighbours = neighbours.get(node1);
-		if (!node1Neighbours.vertices.contains(node2)) {
-			node1Neighbours.vertices.add(node2);
-		}
+		vertices[node1].add(node2);
+		vertices[node2].add(node1);
 	}
 
-	public List<Integer> getNeighbours(Integer node) {
+	public Integer[] getNeighbours(Integer node) {
 		if (!isNodeValid(node)) {
 			throw new IllegalArgumentException("Illegal node number");
 		}
 
-		return Collections.unmodifiableList(neighbours.get(node).vertices);
+		return vertices[node].toArray(new Integer[0]);
+	}
+
+	public String getDistancesFromNode(Integer root) {
+		queue.clear();
+
+		initDistances();
+
+		walk(root);
+
+		return String.join(" ", Arrays.toString(distances));
+	}
+
+	private void walk(Integer node) {
+		for (Integer neighbour: getNeighbours(node)) {
+			int newDistance = distances[node] + 1;
+			if (distances[neighbour] < 0) {
+				distances[neighbour] = newDistance;
+				queue.offer(neighbour);
+			}
+			else if (distances[neighbour] > newDistance) {
+				//TODO: should not recount all the distances?
+				//at least on path which has this neighbour as a node
+				distances[neighbour] = newDistance;
+			}
+		}
+
+		walk(queue.poll());
 	}
 
 	public String toString() {
 		String s = "[" + numberOfVertices + ":";
-		for (int n = 1; n < numberOfVertices; n++) {
+		for (int n = 1; n <= numberOfVertices; n++) {
 			s += n + "(" + 
-				String.join(",", getNeighbours(n).toArray(new String[0])) + ")";
+				String.join(",", Arrays.toString(getNeighbours(n))) + ")";
 		}
 
 		return s + "]";

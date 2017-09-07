@@ -1,16 +1,14 @@
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
-public class UndirectedGraph {
+public class StringGraphTest {
 	public final int numberOfVertices;
 
 	private final Set<Integer>[] vertices;
 
 	@SuppressWarnings("unchecked")
-	public UndirectedGraph(Integer numberOfVertices) {
+	public StringGraphTest(Integer numberOfVertices) {
 		this.numberOfVertices = numberOfVertices;
 
 		this.vertices = new HashSet[numberOfVertices];

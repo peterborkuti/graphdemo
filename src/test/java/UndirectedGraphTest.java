@@ -1,10 +1,35 @@
 import static org.junit.Assert.assertEquals;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.Test;
 
 public class UndirectedGraphTest {
+	private Integer[] invokeGetNeighbours(UndirectedGraph graph, Integer vertex) {
+		Method method = null;
+		try {
+			method = graph.getClass().getDeclaredMethod("getNeighbours", Integer.class);
+		} catch (NoSuchMethodException | SecurityException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		method.setAccessible(true);
+
+		Object neighbours = null;
+		try {
+			vertex--;
+			neighbours = method.invoke(graph, vertex);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return (Integer[])neighbours;
+	}
+
 	@Test
 	public void testCreateGraph() {
 		UndirectedGraph graph = new UndirectedGraph(1);
@@ -14,23 +39,12 @@ public class UndirectedGraphTest {
 	@Test
 	public void testAddEdge() {
 		UndirectedGraph graph = new UndirectedGraph(2);
-		graph.addEdge(1, 2);
-		Integer[] neighbours1 = graph.getNeighbours(1);
+		graph.addEdge(0, 1);
+		Integer[] neighbours1 =  graph.getNeighbours(0);
 		assertEquals(1, neighbours1.length);
-		assertEquals((Integer) 2, neighbours1[1]);
-		Integer[] neighbours2 = graph.getNeighbours(2);;
+		assertEquals((Integer)1, neighbours1[0]);
+		Integer[] neighbours2 = graph.getNeighbours( 1);
 		assertEquals(1, neighbours2.length);
-		assertEquals((Integer) 0, neighbours2[1]);
-	}
-
-	public void testAddEdges() {
-		UndirectedGraph graph = new UndirectedGraph(4);
-		graph.addEdges("1,2;1,3;1,4;2,4;3,4");
-		Integer[] neighbours1 = graph.getNeighbours(1);
-		assertEquals(1, neighbours1.length);
-		assertEquals((Integer) 2, neighbours1[1]);
-		Integer[] neighbours2 = graph.getNeighbours(2);
-		assertEquals(1, neighbours2.size());
-		assertEquals((Integer) 0, neighbours2.get(0));
+		assertEquals((Integer) 0, neighbours2[0]);
 	}
 }
